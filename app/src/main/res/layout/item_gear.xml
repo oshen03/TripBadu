@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/ivGear"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher_background" />
+
+        <TextView
+            android:id="@+id/tvGearName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gear Name"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/on_surface"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:id="@+id/tvGearPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="LKR 0.00"
+            android:textSize="16sp"
+            android:textColor="@color/primary"
+            android:layout_marginTop="4dp"/>
+
+        <Button
+            android:id="@+id/btnAddToCart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add to Cart"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/primary"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">TripBadu</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="dont_have_account">Don\'t have an account? Register</string>
+    <string name="already_have_account">Already have an account? Login</string>
+    <string name="marketplace_title">TripBadu Marketplace</string>
+    <string name="view_cart">View Cart</string>
+    <string name="view_map">View Map</string>
+    <string name="add_to_cart">Add to Cart</string>
+    <string name="my_cart">My Cart</string>
+    <string name="total_label">Total: LKR %s</string>
+    <string name="proceed_to_checkout">Proceed to Checkout</string>
+    <string name="checkout">Checkout</string>
+    <string name="confirm_payment">Confirm Payment</string>
+    <string name="card_number_hint">16-Digit Card Number</string>
+    <string name="expiry_hint">MM/YY</string>
+    <string name="cvv_hint">CVV</string>
+</resources>

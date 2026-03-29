@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripBadu Admin Panel</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        header { background-color: #2E7D32; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #2E7D32; color: white; }
+        tr:hover { background-color: #f1f8e9; }
+        .refresh-btn { background-color: #2E7D32; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; float: right; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>TripBadu Admin Dashboard</h1>
+    <p>Transaction History & Rental Bookings</p>
+</header>
+
+<button class="refresh-btn" onclick="fetchOrders()">Refresh Orders</button>
+
+<table id="orderTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Email</th>
+            <th>Total (LKR)</th>
+            <th>Items</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody id="orderBody">
+        <!-- Orders will be loaded here -->
+    </tbody>
+</table>
+
+<script>
+    async function fetchOrders() {
+        try {
+            const response = await fetch('/api/admin/orders');
+            const orders = await response.json();
+            const tableBody = document.getElementById('orderBody');
+            tableBody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                const itemsList = order.items.map(i => i.name).join(', ');
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.customerName}</td>
+                    <td>${order.email}</td>
+                    <td>${order.totalAmount.toFixed(2)}</td>
+                    <td>${itemsList}</td>
+                    <td>${order.date}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+        }
+    }
+
+    // Load orders on startup
+    fetchOrders();
+    // Poll for new orders every 10 seconds
+    setInterval(fetchOrders, 10000);
+</script>
+
+</body>
+</html>
