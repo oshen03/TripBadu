@@ -1,38 +1,56 @@
 package com.example.tripbadu;
 
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import android.preference.PreferenceManager;
+import androidx.appcompat.app.AppCompatActivity;
+import org.osmdroid.config.Configuration;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 
-public class MapActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapActivity extends AppCompatActivity {
 
-    private GoogleMap mMap;
+    private MapView map = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Handle permissions and user agent configuration as required by OSM
+        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
+
         setContentView(R.layout.activity_map);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
+        map = findViewById(R.id.map);
+        map.setTileSource(TileSourceFactory.MAPNIK);
+
+        // Enable zoom controls and multi-touch
+        map.setBuiltInZoomControls(true);
+        map.setMultiTouchControls(true);
+
+        // Set starting point: Pidurangala Rock, Sri Lanka
+        GeoPoint startPoint = new GeoPoint(7.9649, 80.7618);
+        map.getController().setZoom(15.0);
+        map.getController().setCenter(startPoint);
+
+        // Add a marker
+        Marker startMarker = new Marker(map);
+        startMarker.setPosition(startPoint);
+        startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        startMarker.setTitle("Pidurangala Trail Start");
+        map.getOverlays().add(startMarker);
     }
 
     @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        mMap = googleMap;
+    public void onResume() {
+        super.onResume();
+        map.onResume(); // Needed for osmdroid
+    }
 
-        // Hardcoded trail starting point: Pidurangala Rock, Sri Lanka
-        LatLng trailStart = new LatLng(7.9649, 80.7618);
-        mMap.addMarker(new MarkerOptions().position(trailStart).title("Pidurangala Trail Start"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(trailStart, 15));
+    @Override
+    public void onPause() {
+        super.onPause();
+        map.onPause();  // Needed for osmdroid
     }
 }

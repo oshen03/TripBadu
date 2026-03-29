@@ -38,7 +38,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
-    implementation(libs.play.services.maps)
+    implementation(libs.osmdroid)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
