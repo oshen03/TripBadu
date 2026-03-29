@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText etName, etEmail, etPassword;
+    private Spinner spinnerRole;
     private Button btnRegister;
     private TextView tvLogin;
     private DatabaseHelper dbHelper;
@@ -26,6 +28,7 @@ public class RegisterActivity extends AppCompatActivity {
         etName = findViewById(R.id.etName);
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
+        spinnerRole = findViewById(R.id.spinnerRole);
         btnRegister = findViewById(R.id.btnRegister);
         tvLogin = findViewById(R.id.tvLogin);
 
@@ -35,16 +38,20 @@ public class RegisterActivity extends AppCompatActivity {
                 String name = etName.getText().toString().trim();
                 String email = etEmail.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
+                String selectedRole = spinnerRole.getSelectedItem().toString();
+                
+                // Map display string to DB role
+                String role = selectedRole.contains("VIP") ? "VIP" : "User";
 
                 if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
                     Toast.makeText(RegisterActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 } else {
-                    if (dbHelper.registerUser(email, password, name)) {
+                    if (dbHelper.registerUser(email, password, name, role)) {
                         Toast.makeText(RegisterActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                         finish();
                     } else {
-                        Toast.makeText(RegisterActivity.this, "Registration Failed or Email already exists", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RegisterActivity.this, "Registration Failed", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
