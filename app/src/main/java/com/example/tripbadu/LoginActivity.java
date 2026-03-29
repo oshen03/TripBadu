@@ -37,7 +37,12 @@ public class LoginActivity extends AppCompatActivity {
                 if (email.isEmpty() || password.isEmpty()) {
                     Toast.makeText(LoginActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 } else {
-                    if (dbHelper.checkUser(email, password)) {
+                    // Check for admin hardcoded credentials
+                    if (email.equals("admin") && password.equals("admin")) {
+                        Toast.makeText(LoginActivity.this, "Admin Login Successful", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+                        finish();
+                    } else if (dbHelper.checkUser(email, password)) {
                         Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                         finish();

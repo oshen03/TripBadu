@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "tripbadu.db";
-    private static final int DATABASE_VERSION = 2; // Incremented version
+    private static final int DATABASE_VERSION = 3; // Incremented version for P2P expansion
 
     // User table
     public static final String TABLE_USERS = "users";
@@ -17,6 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
     public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_ROLE = "role"; // User, VIP, Admin
 
     // Cart table
     public static final String TABLE_CART = "cart";
@@ -25,12 +26,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PROD_PRICE = "prod_price";
     public static final String COLUMN_PROD_IMAGE = "prod_image";
 
-    // Gear table (for Admin)
+    // Gear table (Local cache/Admin)
     public static final String TABLE_GEAR = "gear";
     public static final String COLUMN_GEAR_ID = "gear_id";
     public static final String COLUMN_GEAR_NAME = "gear_name";
     public static final String COLUMN_GEAR_PRICE = "gear_price";
     public static final String COLUMN_GEAR_IMAGE = "gear_image";
+    public static final String COLUMN_GEAR_STATUS = "status"; // pending, approved
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -42,7 +44,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + COLUMN_EMAIL + " TEXT UNIQUE,"
                 + COLUMN_PASSWORD + " TEXT,"
-                + COLUMN_NAME + " TEXT" + ")";
+                + COLUMN_NAME + " TEXT,"
+                + COLUMN_ROLE + " TEXT DEFAULT 'User'" + ")";
         db.execSQL(CREATE_USERS_TABLE);
 
         String CREATE_CART_TABLE = "CREATE TABLE " + TABLE_CART + "("
@@ -56,7 +59,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_GEAR_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + COLUMN_GEAR_NAME + " TEXT,"
                 + COLUMN_GEAR_PRICE + " REAL,"
-                + COLUMN_GEAR_IMAGE + " TEXT" + ")";
+                + COLUMN_GEAR_IMAGE + " TEXT,"
+                + COLUMN_GEAR_STATUS + " TEXT DEFAULT 'approved'" + ")";
         db.execSQL(CREATE_GEAR_TABLE);
     }
 
@@ -68,22 +72,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean registerUser(String email, String password, String name) {
+    public boolean registerUser(String email, String password, String name, String role) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_EMAIL, email);
         values.put(COLUMN_PASSWORD, password);
         values.put(COLUMN_NAME, name);
+        values.put(COLUMN_ROLE, role);
         long result = db.insert(TABLE_USERS, null, values);
         return result != -1;
     }
 
-    public boolean checkUser(String email, String password) {
+    public Cursor getUser(String email, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {COLUMN_ID};
         String selection = COLUMN_EMAIL + " = ?" + " AND " + COLUMN_PASSWORD + " = ?";
         String[] selectionArgs = {email, password};
-        Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
+        return db.query(TABLE_USERS, null, selection, selectionArgs, null, null, null);
+    }
+
+    public boolean checkUser(String email, String password) {
+        Cursor cursor = getUser(email, password);
         int count = cursor.getCount();
         cursor.close();
         return count > 0;
@@ -96,6 +104,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_GEAR_NAME, name);
         values.put(COLUMN_GEAR_PRICE, price);
         values.put(COLUMN_GEAR_IMAGE, image);
+        values.put(COLUMN_GEAR_STATUS, "approved");
         db.insert(TABLE_GEAR, null, values);
     }
 

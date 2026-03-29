@@ -19,4 +19,11 @@
     <string name="card_number_hint">16-Digit Card Number</string>
     <string name="expiry_hint">MM/YY</string>
     <string name="cvv_hint">CVV</string>
+    <string name="i_am_here_to">I am here to:</string>
+    <string name="logo_desc">Trip Badu Logo</string>
+
+    <string-array name="roles">
+        <item>Rent Gear (User)</item>
+        <item>List Gear (VIP)</item>
+    </string-array>
 </resources>
