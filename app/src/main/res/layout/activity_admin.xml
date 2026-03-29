@@ -1,61 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/background">
 
-    <TextView
-        android:id="@+id/tvAdminTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Admin Panel - Add New Gear"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <EditText
-        android:id="@+id/etGearName"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Gear Name"
-        android:layout_marginTop="32dp"
-        app:layout_constraintTop_toBottomOf="@id/tvAdminTitle" />
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
 
-    <EditText
-        android:id="@+id/etGearPrice"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Price"
-        android:inputType="numberDecimal"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/etGearName" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp">
 
-    <EditText
-        android:id="@+id/etGearImage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Image Filename (e.g. tent.jpg)"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/etGearPrice" />
+            <TextView
+                android:id="@+id/tvAdminTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Admin Panel"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:layout_centerHorizontal="true" />
 
-    <Button
-        android:id="@+id/btnAddGear"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add Gear Item"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/etGearImage" />
+            <ImageView
+                android:id="@+id/ivAdminLogout"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_lock_power_off"
+                android:contentDescription="Logout"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                app:tint="@color/primary"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+        </RelativeLayout>
 
-    <Button
-        android:id="@+id/btnViewMain"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Go to Main App"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/btnAddGear" />
+        <!-- Add New Gear Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp"
+            android:layout_marginBottom="24dp"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add New Gear"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp"/>
+
+                <EditText
+                    android:id="@+id/etGearName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Gear Name"
+                    android:layout_marginBottom="8dp" />
+
+                <EditText
+                    android:id="@+id/etGearPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Price (LKR)"
+                    android:inputType="numberDecimal"
+                    android:layout_marginBottom="8dp" />
+
+                <ImageView
+                    android:id="@+id/ivGearPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:scaleType="centerCrop"
+                    android:background="#EEEEEE"
+                    android:layout_marginBottom="8dp"
+                    android:visibility="gone"/>
+
+                <Button
+                    android:id="@+id/btnSelectImage"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select Image"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btnAddGear"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Add Gear Item"
+                    android:backgroundTint="@color/primary" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Admin Management Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Management"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"
+            android:layout_gravity="start"/>
+
+        <Button
+            android:id="@+id/btnAdApproval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pending Ad Approvals"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnManageMembers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Members"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnViewMain"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Go to Main App" />
+
+    </LinearLayout>
+</ScrollView>

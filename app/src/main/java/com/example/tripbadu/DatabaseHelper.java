@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "tripbadu.db";
-    private static final int DATABASE_VERSION = 3; // Incremented version for P2P expansion
+    private static final int DATABASE_VERSION = 4; // Incremented to 4 to clear existing data
 
     // User table
     public static final String TABLE_USERS = "users";
@@ -17,7 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
     public static final String COLUMN_NAME = "name";
-    public static final String COLUMN_ROLE = "role"; // User, VIP, Admin
+    public static final String COLUMN_ROLE = "role";
 
     // Cart table
     public static final String TABLE_CART = "cart";
@@ -26,7 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PROD_PRICE = "prod_price";
     public static final String COLUMN_PROD_IMAGE = "prod_image";
 
-    // Gear table (Local cache/Admin)
+    // Gear table
     public static final String TABLE_GEAR = "gear";
     public static final String COLUMN_GEAR_ID = "gear_id";
     public static final String COLUMN_GEAR_NAME = "gear_name";
@@ -97,20 +97,47 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return count > 0;
     }
 
-    // Admin Methods
-    public void addGear(String name, double price, String image) {
+    public Cursor getAllUsers() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_USERS, null);
+    }
+
+    public void deleteUser(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_USERS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+    }
+
+    // Admin & Gear Methods
+    public void addGear(String name, double price, String image, String status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_GEAR_NAME, name);
         values.put(COLUMN_GEAR_PRICE, price);
         values.put(COLUMN_GEAR_IMAGE, image);
-        values.put(COLUMN_GEAR_STATUS, "approved");
+        values.put(COLUMN_GEAR_STATUS, status);
         db.insert(TABLE_GEAR, null, values);
     }
 
     public Cursor getAllGear() {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TABLE_GEAR, null);
+        return db.rawQuery("SELECT * FROM " + TABLE_GEAR + " WHERE " + COLUMN_GEAR_STATUS + " = 'approved'", null);
+    }
+
+    public Cursor getPendingGear() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_GEAR + " WHERE " + COLUMN_GEAR_STATUS + " = 'pending'", null);
+    }
+
+    public void approveGear(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_GEAR_STATUS, "approved");
+        db.update(TABLE_GEAR, values, COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
+    }
+
+    public void deleteGear(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_GEAR, COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
     // Cart Methods

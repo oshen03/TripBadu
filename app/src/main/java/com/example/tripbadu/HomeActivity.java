@@ -1,9 +1,12 @@
 package com.example.tripbadu;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,6 +25,7 @@ public class HomeActivity extends AppCompatActivity {
     private GearAdapter adapter;
     private List<Gear> gearList = new ArrayList<>();
     private Button btnViewCart, btnViewMap;
+    private ImageView ivLogout;
     private DatabaseHelper dbHelper;
 
     @Override
@@ -33,6 +37,7 @@ public class HomeActivity extends AppCompatActivity {
         rvGear = findViewById(R.id.rvGear);
         btnViewCart = findViewById(R.id.btnViewCart);
         btnViewMap = findViewById(R.id.btnViewMap);
+        ivLogout = findViewById(R.id.ivLogout);
 
         rvGear.setLayoutManager(new LinearLayoutManager(this));
         adapter = new GearAdapter(this, gearList);
@@ -46,9 +51,12 @@ public class HomeActivity extends AppCompatActivity {
 
         btnViewCart.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, CartActivity.class)));
         btnViewMap.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, MapActivity.class)));
+        
+        ivLogout.setOnClickListener(v -> logout());
     }
 
     private void loadLocalGear() {
+        gearList.clear();
         Cursor cursor = dbHelper.getAllGear();
         if (cursor.moveToFirst()) {
             do {
@@ -74,7 +82,6 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Gear>> call, Response<List<Gear>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // For now we merge them, or you could clear local first
                     gearList.addAll(response.body());
                     adapter.notifyDataSetChanged();
                 }
@@ -82,8 +89,18 @@ public class HomeActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Gear>> call, Throwable t) {
-                // If remote fails, we already have local data
             }
         });
+    }
+
+    private void logout() {
+        SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        sharedPref.edit().clear().apply();
+        
+        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

@@ -27,7 +27,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class VipDashboardActivity extends AppCompatActivity {
 
-    private ImageView ivAdPreview;
+    private ImageView ivAdPreview, ivVipLogout;
     private EditText etAdName, etAdDesc, etAdPrice;
     private Button btnSelectImage, btnSubmitAd, btnGoHome;
     private Uri selectedImageUri;
@@ -39,6 +39,7 @@ public class VipDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_vip_dashboard);
 
         ivAdPreview = findViewById(R.id.ivAdPreview);
+        ivVipLogout = findViewById(R.id.ivVipLogout);
         etAdName = findViewById(R.id.etAdName);
         etAdDesc = findViewById(R.id.etAdDesc);
         etAdPrice = findViewById(R.id.etAdPrice);
@@ -62,6 +63,8 @@ public class VipDashboardActivity extends AppCompatActivity {
         });
 
         btnSubmitAd.setOnClickListener(v -> uploadAd());
+
+        ivVipLogout.setOnClickListener(v -> logout());
 
         btnGoHome.setOnClickListener(v -> {
             startActivity(new Intent(this, HomeActivity.class));
@@ -132,5 +135,16 @@ public class VipDashboardActivity extends AppCompatActivity {
         }
         outputStream.flush();
         return tempFile;
+    }
+
+    private void logout() {
+        SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        sharedPref.edit().clear().apply();
+        
+        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(VipDashboardActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
