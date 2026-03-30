@@ -35,7 +35,6 @@ public class HomeActivity extends AppCompatActivity {
     private EditText etSearch;
     private DatabaseHelper dbHelper;
 
-    // Shake Detection
     private SensorManager mSensorManager;
     private ShakeDetector mShakeDetector;
 
@@ -55,11 +54,10 @@ public class HomeActivity extends AppCompatActivity {
         adapter = new GearAdapter(this, gearList);
         rvGear.setAdapter(adapter);
 
-        // Start SOS Service
         startService(new Intent(this, SosService.class));
 
-        loadLocalGear(); // Load from local DB
-        fetchRemoteGear(); // Also try to fetch from remote
+        loadLocalGear(); 
+        fetchRemoteGear(); 
 
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -79,7 +77,6 @@ public class HomeActivity extends AppCompatActivity {
         
         ivLogout.setOnClickListener(v -> logout());
 
-        // ShakeDetector initialization
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mShakeDetector = new ShakeDetector();
         mShakeDetector.setOnShakeListener(() -> {
@@ -93,7 +90,6 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Register the ShakeDetector
         Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         if (accelerometer != null) {
             mSensorManager.registerListener(mShakeDetector, accelerometer, SensorManager.SENSOR_DELAY_UI);
@@ -102,7 +98,6 @@ public class HomeActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        // Unregister the ShakeDetector to save battery
         mSensorManager.unregisterListener(mShakeDetector);
         super.onPause();
     }

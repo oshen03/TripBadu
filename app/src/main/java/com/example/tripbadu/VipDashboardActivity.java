@@ -125,7 +125,6 @@ public class VipDashboardActivity extends AppCompatActivity {
             dbHelper.addGear(name, price, selectedImageUri.toString(), "pending", lat, lng, contact, userEmail);
             Toast.makeText(this, "Ad Submitted for Approval", Toast.LENGTH_SHORT).show();
             
-            // Clear fields and stay on the dashboard
             etAdName.setText("");
             etAdPrice.setText("");
             etAdLat.setText("");

@@ -25,7 +25,7 @@ public class PaymentsUtil {
             put("type", "PAYMENT_GATEWAY");
             put("parameters", new JSONObject() {{
                 put("gateway", "stripe");
-                put("stripe:version", "2023-10-16"); // Update to latest Stripe API version
+                put("stripe:version", "2023-10-16");
                 put("stripe:publishableKey", "pk_test_51TGhxD2LdE4pr3IryKu9LARLJGX9EPWkeD3qzTw2J77agDP3EFisQQhCX971Vpc2WJ6z0fvOvKJk7HL7fdkY1KCP00n59k3R3X");
             }});
         }};
@@ -54,7 +54,6 @@ public class PaymentsUtil {
         JSONObject parameters = new JSONObject();
         parameters.put("allowedAuthMethods", getAllowedCardAuthMethods());
         parameters.put("allowedCardNetworks", getAllowedCardNetworks());
-        // Optionally, you can add billing address/phone number requirements here
         cardPaymentMethod.put("parameters", parameters);
 
         return cardPaymentMethod;
@@ -83,8 +82,8 @@ public class PaymentsUtil {
         JSONObject transactionInfo = new JSONObject();
         transactionInfo.put("totalPrice", price);
         transactionInfo.put("totalPriceStatus", "FINAL");
-        transactionInfo.put("countryCode", "US"); // Adjust to your country code
-        transactionInfo.put("currencyCode", "LKR"); // Adjust to your currency
+        transactionInfo.put("countryCode", "US");
+        transactionInfo.put("currencyCode", "LKR");
         transactionInfo.put("checkoutOption", "COMPLETE_IMMEDIATE_PURCHASE");
 
         return transactionInfo;
@@ -101,12 +100,6 @@ public class PaymentsUtil {
                     "allowedPaymentMethods", new JSONArray().put(PaymentsUtil.getCardPaymentMethod()));
             paymentDataRequest.put("transactionInfo", PaymentsUtil.getTransactionInfo(centsToString(priceCents)));
             paymentDataRequest.put("merchantInfo", PaymentsUtil.getMerchantInfo());
-
-            /* An optional shipping address requirement is a common part of many checkout flows.
-             * See the direct-integration guide for more details:
-             * https://developers.google.com/pay/api/android/guides/tutorial#shipping-address
-             */
-            // paymentDataRequest.put("shippingAddressRequired", true);
 
             return PaymentDataRequest.fromJson(paymentDataRequest.toString());
         } catch (JSONException e) {
