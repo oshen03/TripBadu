@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +29,7 @@ public class HomeActivity extends AppCompatActivity {
     private List<Gear> gearList = new ArrayList<>();
     private Button btnViewCart, btnViewMap;
     private ImageView ivLogout;
+    private EditText etSearch;
     private DatabaseHelper dbHelper;
 
     @Override
@@ -38,6 +42,7 @@ public class HomeActivity extends AppCompatActivity {
         btnViewCart = findViewById(R.id.btnViewCart);
         btnViewMap = findViewById(R.id.btnViewMap);
         ivLogout = findViewById(R.id.ivLogout);
+        etSearch = findViewById(R.id.etSearch);
 
         rvGear.setLayoutManager(new LinearLayoutManager(this));
         adapter = new GearAdapter(this, gearList);
@@ -48,6 +53,19 @@ public class HomeActivity extends AppCompatActivity {
 
         loadLocalGear(); // Load from local DB
         fetchRemoteGear(); // Also try to fetch from remote
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.filter(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         btnViewCart.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, CartActivity.class)));
         btnViewMap.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, MapActivity.class)));
@@ -68,7 +86,7 @@ public class HomeActivity extends AppCompatActivity {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        adapter.notifyDataSetChanged();
+        adapter.updateList(gearList);
     }
 
     private void fetchRemoteGear() {
@@ -83,7 +101,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onResponse(Call<List<Gear>> call, Response<List<Gear>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     gearList.addAll(response.body());
-                    adapter.notifyDataSetChanged();
+                    adapter.updateList(gearList);
                 }
             }
 

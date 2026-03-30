@@ -42,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
                 } else {
                     // Check for admin hardcoded credentials
                     if (email.equals("admin") && password.equals("admin")) {
-                        saveSession(-1, "Admin", "Administrator");
+                        saveSession(-1, "Admin", "Administrator", "admin");
                         Toast.makeText(LoginActivity.this, "Admin Login Successful", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(LoginActivity.this, AdminActivity.class));
                         finish();
@@ -52,8 +52,9 @@ public class LoginActivity extends AppCompatActivity {
                             int id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID));
                             String role = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ROLE));
                             String name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NAME));
+                            String userEmail = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_EMAIL));
                             
-                            saveSession(id, role, name);
+                            saveSession(id, role, name, userEmail);
                             
                             Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
                             
@@ -80,12 +81,13 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void saveSession(int id, String role, String name) {
+    private void saveSession(int id, String role, String name, String email) {
         SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putInt("userId", id);
         editor.putString("role", role);
         editor.putString("userName", name);
+        editor.putString("email", email);
         editor.apply();
     }
 }

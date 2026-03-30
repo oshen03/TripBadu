@@ -41,7 +41,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"/>
         </RelativeLayout>
 
-        <!-- Add New Gear Section -->
+        <!-- Add/Edit Gear Section -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -58,6 +58,7 @@
                 android:padding="16dp">
 
                 <TextView
+                    android:id="@+id/tvFormTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Add New Gear"
@@ -80,6 +81,52 @@
                     android:inputType="numberDecimal"
                     android:layout_marginBottom="8dp" />
 
+                <EditText
+                    android:id="@+id/etGearContact"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Contact Number"
+                    android:inputType="phone"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Location:"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <EditText
+                        android:id="@+id/etGearLat"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Lat"
+                        android:inputType="numberSigned|numberDecimal"/>
+
+                    <EditText
+                        android:id="@+id/etGearLng"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Lng"
+                        android:inputType="numberSigned|numberDecimal"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnPickLocation"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Pick from Map"
+                    android:layout_marginBottom="16dp"/>
+
                 <ImageView
                     android:id="@+id/ivGearPreview"
                     android:layout_width="match_parent"
@@ -87,7 +134,8 @@
                     android:scaleType="centerCrop"
                     android:background="#EEEEEE"
                     android:layout_marginBottom="8dp"
-                    android:visibility="gone"/>
+                    android:visibility="gone"
+                    android:contentDescription="Gear Preview"/>
 
                 <Button
                     android:id="@+id/btnSelectImage"
@@ -97,12 +145,29 @@
                     android:text="Select Image"
                     android:layout_marginBottom="16dp" />
 
-                <Button
-                    android:id="@+id/btnAddGear"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Add Gear Item"
-                    android:backgroundTint="@color/primary" />
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnCancelEdit"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Cancel"
+                        android:visibility="gone"
+                        android:layout_marginEnd="8dp"/>
+
+                    <Button
+                        android:id="@+id/btnAddGear"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:text="Add Gear Item"
+                        android:backgroundTint="@color/primary" />
+                </LinearLayout>
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -130,6 +195,14 @@
             android:layout_height="wrap_content"
             android:text="Manage Members"
             android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnEditExisting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Edit Approved Ads"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
         <Button
             android:id="@+id/btnViewMain"

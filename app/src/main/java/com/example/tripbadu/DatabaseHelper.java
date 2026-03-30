@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "tripbadu.db";
-    private static final int DATABASE_VERSION = 4; // Incremented to 4 to clear existing data
+    private static final int DATABASE_VERSION = 7; // Incremented for Owner and Notifications
 
     // User table
     public static final String TABLE_USERS = "users";
@@ -33,6 +33,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_GEAR_PRICE = "gear_price";
     public static final String COLUMN_GEAR_IMAGE = "gear_image";
     public static final String COLUMN_GEAR_STATUS = "status"; // pending, approved
+    public static final String COLUMN_GEAR_LAT = "latitude";
+    public static final String COLUMN_GEAR_LNG = "longitude";
+    public static final String COLUMN_GEAR_CONTACT = "contact";
+    public static final String COLUMN_GEAR_OWNER = "owner_email";
+
+    // Notification table
+    public static final String TABLE_NOTIFICATIONS = "notifications";
+    public static final String COLUMN_NOTIF_ID = "notif_id";
+    public static final String COLUMN_NOTIF_USER = "user_email";
+    public static final String COLUMN_NOTIF_MSG = "message";
+    public static final String COLUMN_NOTIF_READ = "is_read";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -60,8 +71,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_GEAR_NAME + " TEXT,"
                 + COLUMN_GEAR_PRICE + " REAL,"
                 + COLUMN_GEAR_IMAGE + " TEXT,"
-                + COLUMN_GEAR_STATUS + " TEXT DEFAULT 'approved'" + ")";
+                + COLUMN_GEAR_STATUS + " TEXT DEFAULT 'approved',"
+                + COLUMN_GEAR_LAT + " REAL,"
+                + COLUMN_GEAR_LNG + " REAL,"
+                + COLUMN_GEAR_CONTACT + " TEXT,"
+                + COLUMN_GEAR_OWNER + " TEXT" + ")";
         db.execSQL(CREATE_GEAR_TABLE);
+
+        String CREATE_NOTIF_TABLE = "CREATE TABLE " + TABLE_NOTIFICATIONS + "("
+                + COLUMN_NOTIF_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + COLUMN_NOTIF_USER + " TEXT,"
+                + COLUMN_NOTIF_MSG + " TEXT,"
+                + COLUMN_NOTIF_READ + " INTEGER DEFAULT 0" + ")";
+        db.execSQL(CREATE_NOTIF_TABLE);
     }
 
     @Override
@@ -69,6 +91,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CART);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_GEAR);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTIFICATIONS);
         onCreate(db);
     }
 
@@ -108,14 +131,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Admin & Gear Methods
-    public void addGear(String name, double price, String image, String status) {
+    public void addGear(String name, double price, String image, String status, double lat, double lng, String contact, String ownerEmail) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_GEAR_NAME, name);
         values.put(COLUMN_GEAR_PRICE, price);
         values.put(COLUMN_GEAR_IMAGE, image);
         values.put(COLUMN_GEAR_STATUS, status);
+        values.put(COLUMN_GEAR_LAT, lat);
+        values.put(COLUMN_GEAR_LNG, lng);
+        values.put(COLUMN_GEAR_CONTACT, contact);
+        values.put(COLUMN_GEAR_OWNER, ownerEmail);
         db.insert(TABLE_GEAR, null, values);
+    }
+
+    public void updateGear(int id, String name, double price, String image, double lat, double lng, String contact) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_GEAR_NAME, name);
+        values.put(COLUMN_GEAR_PRICE, price);
+        values.put(COLUMN_GEAR_IMAGE, image);
+        values.put(COLUMN_GEAR_LAT, lat);
+        values.put(COLUMN_GEAR_LNG, lng);
+        values.put(COLUMN_GEAR_CONTACT, contact);
+        db.update(TABLE_GEAR, values, COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
     public Cursor getAllGear() {
@@ -130,6 +169,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void approveGear(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
+        
+        // Get owner email before approving to send notification
+        String ownerEmail = "";
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_GEAR_OWNER + ", " + COLUMN_GEAR_NAME + " FROM " + TABLE_GEAR + " WHERE " + COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
+        if (cursor.moveToFirst()) {
+            ownerEmail = cursor.getString(0);
+            String gearName = cursor.getString(1);
+            if (ownerEmail != null && !ownerEmail.isEmpty()) {
+                addNotification(ownerEmail, "Your ad for '" + gearName + "' has been approved!");
+            }
+        }
+        cursor.close();
+
         ContentValues values = new ContentValues();
         values.put(COLUMN_GEAR_STATUS, "approved");
         db.update(TABLE_GEAR, values, COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
@@ -138,6 +190,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void deleteGear(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_GEAR, COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
+    }
+
+    // Notification Methods
+    public void addNotification(String email, String message) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NOTIF_USER, email);
+        values.put(COLUMN_NOTIF_MSG, message);
+        db.insert(TABLE_NOTIFICATIONS, null, values);
+    }
+
+    public Cursor getNotifications(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_NOTIFICATIONS + " WHERE " + COLUMN_NOTIF_USER + " = ? ORDER BY " + COLUMN_NOTIF_ID + " DESC", new String[]{email});
+    }
+
+    public void markNotificationsAsRead(String email) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NOTIF_READ, 1);
+        db.update(TABLE_NOTIFICATIONS, values, COLUMN_NOTIF_USER + " = ?", new String[]{email});
     }
 
     // Cart Methods

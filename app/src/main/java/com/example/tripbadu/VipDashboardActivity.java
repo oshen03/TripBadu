@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -13,56 +14,85 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class VipDashboardActivity extends AppCompatActivity {
 
-    private ImageView ivAdPreview, ivVipLogout;
-    private EditText etAdName, etAdDesc, etAdPrice;
-    private Button btnSelectImage, btnSubmitAd, btnGoHome;
+    private ImageView ivAdPreview, ivVipLogout, ivNotifications;
+    private EditText etAdName, etAdDesc, etAdPrice, etAdLat, etAdLng, etAdContact;
+    private Button btnSelectImage, btnSubmitAd, btnGoHome, btnPickLocation;
     private Uri selectedImageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
+    private ActivityResultLauncher<Intent> locationPickerLauncher;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vip_dashboard);
 
+        dbHelper = new DatabaseHelper(this);
+
         ivAdPreview = findViewById(R.id.ivAdPreview);
         ivVipLogout = findViewById(R.id.ivVipLogout);
+        ivNotifications = findViewById(R.id.ivNotifications);
         etAdName = findViewById(R.id.etAdName);
         etAdDesc = findViewById(R.id.etAdDesc);
         etAdPrice = findViewById(R.id.etAdPrice);
+        etAdLat = findViewById(R.id.etAdLat);
+        etAdLng = findViewById(R.id.etAdLng);
+        etAdContact = findViewById(R.id.etAdContact);
         btnSelectImage = findViewById(R.id.btnSelectImage);
         btnSubmitAd = findViewById(R.id.btnSubmitAd);
         btnGoHome = findViewById(R.id.btnGoHome);
+        btnPickLocation = findViewById(R.id.btnPickLocation);
 
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         selectedImageUri = result.getData().getData();
+                        final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+                        try {
+                            getContentResolver().takePersistableUriPermission(selectedImageUri, takeFlags);
+                        } catch (SecurityException e) {
+                            e.printStackTrace();
+                        }
                         ivAdPreview.setImageURI(selectedImageUri);
                     }
                 }
         );
 
+        locationPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        double lat = result.getData().getDoubleExtra("lat", 0);
+                        double lng = result.getData().getDoubleExtra("lng", 0);
+                        etAdLat.setText(String.valueOf(lat));
+                        etAdLng.setText(String.valueOf(lng));
+                    }
+                }
+        );
+
         btnSelectImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             imagePickerLauncher.launch(intent);
         });
 
+        btnPickLocation.setOnClickListener(v -> {
+            Intent intent = new Intent(VipDashboardActivity.this, LocationPickerActivity.class);
+            locationPickerLauncher.launch(intent);
+        });
+
         btnSubmitAd.setOnClickListener(v -> uploadAd());
+
+        ivNotifications.setOnClickListener(v -> {
+            startActivity(new Intent(VipDashboardActivity.this, NotificationsActivity.class));
+        });
 
         ivVipLogout.setOnClickListener(v -> logout());
 
@@ -74,75 +104,46 @@ public class VipDashboardActivity extends AppCompatActivity {
 
     private void uploadAd() {
         String name = etAdName.getText().toString().trim();
-        String desc = etAdDesc.getText().toString().trim();
-        String price = etAdPrice.getText().toString().trim();
+        String priceStr = etAdPrice.getText().toString().trim();
+        String latStr = etAdLat.getText().toString().trim();
+        String lngStr = etAdLng.getText().toString().trim();
+        String contact = etAdContact.getText().toString().trim();
 
-        if (name.isEmpty() || desc.isEmpty() || price.isEmpty() || selectedImageUri == null) {
-            Toast.makeText(this, "Please fill all fields and select an image", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty() || priceStr.isEmpty() || latStr.isEmpty() || lngStr.isEmpty() || contact.isEmpty() || selectedImageUri == null) {
+            Toast.makeText(this, "Please fill all required fields, including contact number", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        SharedPreferences pref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        int userId = pref.getInt("userId", -1);
-
         try {
-            File file = getFileFromUri(selectedImageUri);
-            RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), file);
-            MultipartBody.Part body = MultipartBody.Part.createFormData("image", file.getName(), requestFile);
+            double price = Double.parseDouble(priceStr);
+            double lat = Double.parseDouble(latStr);
+            double lng = Double.parseDouble(lngStr);
 
-            RequestBody userIdPart = RequestBody.create(MultipartBody.FORM, String.valueOf(userId));
-            RequestBody namePart = RequestBody.create(MultipartBody.FORM, name);
-            RequestBody descPart = RequestBody.create(MultipartBody.FORM, desc);
-            RequestBody pricePart = RequestBody.create(MultipartBody.FORM, price);
+            SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+            String userEmail = sharedPref.getString("email", "");
 
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("http://10.0.2.2:3000/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-
-            ApiService apiService = retrofit.create(ApiService.class);
-            apiService.uploadAd(userIdPart, namePart, descPart, pricePart, body).enqueue(new Callback<Void>() {
-                @Override
-                public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (response.isSuccessful()) {
-                        Toast.makeText(VipDashboardActivity.this, "Ad Submitted! Waiting for Approval", Toast.LENGTH_LONG).show();
-                        finish();
-                    } else {
-                        Toast.makeText(VipDashboardActivity.this, "Upload failed: " + response.code(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<Void> call, Throwable t) {
-                    Toast.makeText(VipDashboardActivity.this, "Network error", Toast.LENGTH_SHORT).show();
-                }
-            });
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Error processing image", Toast.LENGTH_SHORT).show();
+            dbHelper.addGear(name, price, selectedImageUri.toString(), "pending", lat, lng, contact, userEmail);
+            Toast.makeText(this, "Ad Submitted for Approval", Toast.LENGTH_SHORT).show();
+            
+            // Clear fields and stay on the dashboard
+            etAdName.setText("");
+            etAdPrice.setText("");
+            etAdLat.setText("");
+            etAdLng.setText("");
+            etAdContact.setText("");
+            etAdDesc.setText("");
+            ivAdPreview.setImageDrawable(null);
+            selectedImageUri = null;
+            
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Please enter valid numbers for price and coordinates", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private File getFileFromUri(Uri uri) throws Exception {
-        InputStream inputStream = getContentResolver().openInputStream(uri);
-        File tempFile = File.createTempFile("upload", ".jpg", getCacheDir());
-        FileOutputStream outputStream = new FileOutputStream(tempFile);
-        byte[] buffer = new byte[1024];
-        int read;
-        while ((read = inputStream.read(buffer)) != -1) {
-            outputStream.write(buffer, 0, read);
-        }
-        outputStream.flush();
-        return tempFile;
     }
 
     private void logout() {
         SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
         sharedPref.edit().clear().apply();
-        
-        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(VipDashboardActivity.this, LoginActivity.class);
+        Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
