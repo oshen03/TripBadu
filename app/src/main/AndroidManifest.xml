@@ -45,6 +45,11 @@
 
         <service android:name=".SosService" android:enabled="true" android:exported="false" />
 
+        <!-- Google Pay API metadata -->
+        <meta-data
+            android:name="com.google.android.gms.wallet.api.enabled"
+            android:value="true" />
+
     </application>
 
 </manifest>

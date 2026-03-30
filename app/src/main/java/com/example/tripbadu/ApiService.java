@@ -13,6 +13,9 @@ public interface ApiService {
     @POST("api/checkout")
     Call<Void> processCheckout(@Body Order order);
 
+    @POST("api/charge")
+    Call<Void> charge(@Body ChargeRequest chargeRequest);
+
     @Multipart
     @POST("api/ads")
     Call<Void> uploadAd(

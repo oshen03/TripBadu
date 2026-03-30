@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="153dp"
+    android:height="24dp"
+    android:viewportWidth="153"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18.15,12.3c0,-0.47 -0.04,-0.92 -0.11,-1.37H9.25v2.59h5.01c-0.22,1.16 -0.87,2.15 -1.85,2.81v2.33h3.01C17.2,16.92 18.15,14.83 18.15,12.3z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9.25,21.37c2.46,0 4.52,-0.81 6.02,-2.21l-3.01,-2.33c-0.84,0.56 -1.91,0.89 -3.01,0.89 -2.32,0 -4.28,-1.57 -4.98,-3.67H1.14v2.39C2.65,19.43 5.72,21.37 9.25,21.37z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4.27,14.05c-0.18,-0.53 -0.28,-1.1 -0.28,-1.7c0,-0.6 0.1,-1.17 0.28,-1.7V8.26H1.14C0.53,9.48 0.18,10.87 0.18,12.35c0,1.48 0.35,2.87 0.96,4.09l3.13,-2.39z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9.25,5.92c1.34,0 2.54,0.46 3.48,1.36l2.61,-2.61C13.77,3.31 11.71,2.5 9.25,2.5c-3.53,0 -6.6,1.94 -8.11,4.81l3.13,2.39c0.7,-2.1 2.66,-3.67 4.98,-3.67z" />
+    <!-- Placeholder for text "Buy with" -->
+</vector>

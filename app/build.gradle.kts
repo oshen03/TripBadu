@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "com.example.tripbadu"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.tripbadu"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -39,6 +39,13 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.osmdroid)
+    // implementation(libs.payhere.sdk) // Removed as we are switching to Stripe
+
+    implementation(libs.stripe.android)
+    implementation(libs.play.wallet)
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

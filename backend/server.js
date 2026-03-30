@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const stripe = require('stripe')('sk_test_YOUR_STRIPE_SECRET_KEY'); // Replace with your secret key
 const app = express();
 const PORT = 3000;
 
@@ -21,6 +22,28 @@ let orders = [];
 // API Endpoints
 app.get('/api/gear', (req, res) => {
     res.json(gear);
+});
+
+// Endpoint to handle Stripe charges
+app.post('/api/charge', async (req, res) => {
+    try {
+        const { token, amount } = req.body;
+
+        // Create a charge using the Stripe API
+        // For modern Stripe integration, consider using PaymentIntents instead.
+        const charge = await stripe.charges.create({
+            amount: amount, // Amount in cents
+            currency: 'lkr',
+            description: 'TripBadu Gear Rental',
+            source: token,
+        });
+
+        console.log("Stripe Charge Successful:", charge.id);
+        res.status(200).send({ message: "Payment Successful", chargeId: charge.id });
+    } catch (error) {
+        console.error("Stripe Charge Error:", error.message);
+        res.status(500).send({ error: error.message });
+    }
 });
 
 app.post('/api/checkout', (req, res) => {

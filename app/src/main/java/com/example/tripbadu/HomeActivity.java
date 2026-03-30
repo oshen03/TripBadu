@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -14,6 +16,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.List;
 import retrofit2.Call;
@@ -31,6 +34,10 @@ public class HomeActivity extends AppCompatActivity {
     private ImageView ivLogout;
     private EditText etSearch;
     private DatabaseHelper dbHelper;
+
+    // Shake Detection
+    private SensorManager mSensorManager;
+    private ShakeDetector mShakeDetector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +78,33 @@ public class HomeActivity extends AppCompatActivity {
         btnViewMap.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, MapActivity.class)));
         
         ivLogout.setOnClickListener(v -> logout());
+
+        // ShakeDetector initialization
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mShakeDetector = new ShakeDetector();
+        mShakeDetector.setOnShakeListener(() -> {
+            Snackbar.make(findViewById(android.R.id.content), "You shook the device! 🚀", Snackbar.LENGTH_LONG)
+                    .setBackgroundTint(getResources().getColor(R.color.primary))
+                    .setTextColor(getResources().getColor(R.color.on_primary))
+                    .show();
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the ShakeDetector
+        Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accelerometer != null) {
+            mSensorManager.registerListener(mShakeDetector, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        // Unregister the ShakeDetector to save battery
+        mSensorManager.unregisterListener(mShakeDetector);
+        super.onPause();
     }
 
     private void loadLocalGear() {

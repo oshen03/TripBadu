@@ -11,6 +11,9 @@ retrofit = "2.9.0"
 gson = "2.9.0"
 playServicesMaps = "18.2.0"
 osmdroid = "6.1.18"
+payhere = "3.0.7"
+stripe = "23.1.0"
+playServicesWallet = "19.4.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -22,8 +25,11 @@ activity = { group = "androidx.activity", name = "activity", version.ref = "acti
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "gson" }
-play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+play-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 osmdroid = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmdroid" }
+payhere-sdk = { group = "lk.payhere", name = "android-sdk", version.ref = "payhere" }
+stripe-android = { group = "com.stripe", name = "stripe-android", version.ref = "stripe" }
+play-wallet = { group = "com.google.android.gms", name = "play-services-wallet", version.ref = "playServicesWallet" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
