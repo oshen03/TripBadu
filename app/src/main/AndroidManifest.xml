@@ -7,6 +7,11 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -37,6 +42,7 @@
         <activity android:name=".MapActivity" />
         <activity android:name=".AdminActivity" />
         <activity android:name=".VipDashboardActivity" />
+        <activity android:name=".VipAdsActivity" />
         <activity android:name=".AdApprovalActivity" />
         <activity android:name=".ManageMembersActivity" />
         <activity android:name=".LocationPickerActivity" />
@@ -44,6 +50,15 @@
         <activity android:name=".NotificationsActivity" />
 
         <service android:name=".SosService" android:enabled="true" android:exported="false" />
+
+        <!-- BroadcastReceiver: monitors network connectivity changes -->
+        <receiver
+            android:name=".NetworkChangeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
 
         <!-- Google Pay API metadata -->
         <meta-data

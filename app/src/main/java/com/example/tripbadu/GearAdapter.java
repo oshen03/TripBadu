@@ -5,12 +5,15 @@ import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,20 +62,34 @@ public class GearAdapter extends RecyclerView.Adapter<GearAdapter.GearViewHolder
         holder.tvPrice.setText("LKR " + gear.getPrice());
         
         if (gear.getImage() != null && !gear.getImage().isEmpty()) {
-            try {
-                holder.ivGear.setImageURI(Uri.parse(gear.getImage()));
-            } catch (SecurityException e) {
-                e.printStackTrace();
-                holder.ivGear.setImageResource(android.R.drawable.ic_menu_report_image);
+            String img = gear.getImage();
+            if (!img.startsWith("http://") && !img.startsWith("https://") && !img.startsWith("content://") && !img.startsWith("file://")) {
+                img = "http://192.168.8.113:3000/images/" + img;
             }
+            Glide.with(context)
+                    .load(img)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_menu_report_image)
+                    .into(holder.ivGear);
         } else {
             holder.ivGear.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
         holder.btnAddToCart.setOnClickListener(v -> {
+            // Scale-pulse feedback on the button itself
+            holder.btnAddToCart.animate()
+                    .scaleX(0.92f).scaleY(0.92f).setDuration(80)
+                    .withEndAction(() ->
+                            holder.btnAddToCart.animate().scaleX(1f).scaleY(1f).setDuration(80).start()
+                    ).start();
+
             dbHelper.addToCart(gear.getName(), gear.getPrice(), gear.getImage());
-            Toast.makeText(context, "Added to Cart", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, gear.getName() + " added to cart!", Toast.LENGTH_SHORT).show();
         });
+
+        // Fade-in + slide-up entrance animation for each card
+        Animation anim = AnimationUtils.loadAnimation(context, R.anim.fade_in);
+        holder.itemView.startAnimation(anim);
     }
 
     @Override

@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -91,11 +93,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public static String hashPassword(String password) {
+        if (password == null) return "";
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            return password;
+        }
+    }
+
     public boolean registerUser(String email, String password, String name, String role) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_EMAIL, email);
-        values.put(COLUMN_PASSWORD, password);
+        values.put(COLUMN_PASSWORD, hashPassword(password));
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_ROLE, role);
         long result = db.insert(TABLE_USERS, null, values);
@@ -104,8 +123,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public Cursor getUser(String email, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String selection = COLUMN_EMAIL + " = ?" + " AND " + COLUMN_PASSWORD + " = ?";
-        String[] selectionArgs = {email, password};
+        String hashedPassword = hashPassword(password);
+        String selection = COLUMN_EMAIL + " = ? AND (" + COLUMN_PASSWORD + " = ? OR " + COLUMN_PASSWORD + " = ?)";
+        String[] selectionArgs = {email, hashedPassword, password};
         return db.query(TABLE_USERS, null, selection, selectionArgs, null, null, null);
     }
 

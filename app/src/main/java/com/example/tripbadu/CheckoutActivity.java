@@ -1,7 +1,9 @@
 package com.example.tripbadu;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,7 +62,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
         // Initialize Retrofit
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:3000/") // Change to your server URL
+                .baseUrl("http://192.168.8.113:3000/") // Change to your server URL
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiService = retrofit.create(ApiService.class);
@@ -202,13 +204,21 @@ public class CheckoutActivity extends AppCompatActivity {
             cursor.close();
         }
 
-        Order order = new Order("John Doe", "john@example.com", items, totalAmount);
+        SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        String customerName = sharedPref.getString("userName", "Guest Customer");
+        String customerEmail = sharedPref.getString("email", "guest@example.com");
+
+        Order order = new Order(customerName, customerEmail, items, totalAmount);
 
         apiService.processCheckout(order).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 Toast.makeText(CheckoutActivity.this, "Order Placed Successfully!", Toast.LENGTH_LONG).show();
                 dbHelper.clearCart();
+                // Post a system notification with PendingIntent so user can tap back to Home
+                NotificationHelper.notifyOrderSuccess(
+                        CheckoutActivity.this, customerName, totalAmount);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                 finish();
             }
 
@@ -216,6 +226,7 @@ public class CheckoutActivity extends AppCompatActivity {
             public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                 Toast.makeText(CheckoutActivity.this, "Order processing failed.", Toast.LENGTH_SHORT).show();
                 dbHelper.clearCart();
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                 finish();
             }
         });

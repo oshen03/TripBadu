@@ -43,6 +43,7 @@ dependencies {
 
     implementation(libs.stripe.android)
     implementation(libs.play.wallet)
+    implementation(libs.glide)
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
     implementation("com.squareup.okhttp3:okhttp")
     implementation("com.squareup.okhttp3:logging-interceptor")

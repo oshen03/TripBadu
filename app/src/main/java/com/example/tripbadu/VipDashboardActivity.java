@@ -3,6 +3,7 @@ package com.example.tripbadu;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -14,14 +15,18 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class VipDashboardActivity extends AppCompatActivity {
 
     private ImageView ivAdPreview, ivVipLogout, ivNotifications;
     private EditText etAdName, etAdDesc, etAdPrice, etAdLat, etAdLng, etAdContact;
-    private Button btnSelectImage, btnSubmitAd, btnGoHome, btnPickLocation;
+    private Button btnSelectImage, btnTakePhoto, btnSubmitAd, btnGoHome, btnPickLocation, btnManageMyAds;
     private Uri selectedImageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
+    private ActivityResultLauncher<Void> cameraLauncher;
     private ActivityResultLauncher<Intent> locationPickerLauncher;
     private DatabaseHelper dbHelper;
 
@@ -42,9 +47,11 @@ public class VipDashboardActivity extends AppCompatActivity {
         etAdLng = findViewById(R.id.etAdLng);
         etAdContact = findViewById(R.id.etAdContact);
         btnSelectImage = findViewById(R.id.btnSelectImage);
+        btnTakePhoto = findViewById(R.id.btnTakePhoto);
         btnSubmitAd = findViewById(R.id.btnSubmitAd);
         btnGoHome = findViewById(R.id.btnGoHome);
         btnPickLocation = findViewById(R.id.btnPickLocation);
+        btnManageMyAds = findViewById(R.id.btnManageMyAds);
 
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -58,6 +65,28 @@ public class VipDashboardActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         ivAdPreview.setImageURI(selectedImageUri);
+                    }
+                }
+        );
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicturePreview(),
+                bitmap -> {
+                    if (bitmap != null) {
+                        try {
+                            // Save bitmap to cache dir and use its URI
+                            File cachePath = new File(getCacheDir(), "images");
+                            cachePath.mkdirs();
+                            File imageFile = new File(cachePath, "capture_" + System.currentTimeMillis() + ".png");
+                            FileOutputStream stream = new FileOutputStream(imageFile);
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                            stream.close();
+                            selectedImageUri = Uri.fromFile(imageFile);
+                            ivAdPreview.setImageBitmap(bitmap);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "Failed to save photo", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
         );
@@ -83,6 +112,10 @@ public class VipDashboardActivity extends AppCompatActivity {
             imagePickerLauncher.launch(intent);
         });
 
+        btnTakePhoto.setOnClickListener(v -> {
+            cameraLauncher.launch(null);
+        });
+
         btnPickLocation.setOnClickListener(v -> {
             Intent intent = new Intent(VipDashboardActivity.this, LocationPickerActivity.class);
             locationPickerLauncher.launch(intent);
@@ -92,6 +125,10 @@ public class VipDashboardActivity extends AppCompatActivity {
 
         ivNotifications.setOnClickListener(v -> {
             startActivity(new Intent(VipDashboardActivity.this, NotificationsActivity.class));
+        });
+
+        btnManageMyAds.setOnClickListener(v -> {
+            startActivity(new Intent(VipDashboardActivity.this, VipAdsActivity.class));
         });
 
         ivVipLogout.setOnClickListener(v -> logout());

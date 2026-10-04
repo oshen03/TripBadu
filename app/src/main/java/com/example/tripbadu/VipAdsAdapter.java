@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import java.util.List;
 
 public class VipAdsAdapter extends RecyclerView.Adapter<VipAdsAdapter.ViewHolder> {
@@ -51,12 +52,17 @@ public class VipAdsAdapter extends RecyclerView.Adapter<VipAdsAdapter.ViewHolder
         }
         
         if (gear.getImage() != null && !gear.getImage().isEmpty()) {
-            try {
-                holder.ivImage.setImageURI(Uri.parse(gear.getImage()));
-            } catch (SecurityException e) {
-                e.printStackTrace();
-                holder.ivImage.setImageResource(android.R.drawable.ic_menu_report_image);
+            String img = gear.getImage();
+            if (!img.startsWith("http://") && !img.startsWith("https://") && !img.startsWith("content://") && !img.startsWith("file://")) {
+                img = "http://192.168.8.113:3000/images/" + img;
             }
+            Glide.with(context)
+                    .load(img)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_menu_report_image)
+                    .into(holder.ivImage);
+        } else {
+            holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
         holder.ivDelete.setOnClickListener(v -> {

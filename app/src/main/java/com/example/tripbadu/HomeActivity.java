@@ -1,11 +1,17 @@
 package com.example.tripbadu;
 
+import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -13,6 +19,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,6 +46,9 @@ public class HomeActivity extends AppCompatActivity {
     private SensorManager mSensorManager;
     private ShakeDetector mShakeDetector;
 
+    // Dynamic BroadcastReceiver instance (registered in onResume, unregistered in onPause)
+    private NetworkChangeReceiver networkReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,51 +65,79 @@ public class HomeActivity extends AppCompatActivity {
         adapter = new GearAdapter(this, gearList);
         rvGear.setAdapter(adapter);
 
-        startService(new Intent(this, SosService.class));
+        // Runtime permissions: SMS (for SOS) + Notifications (Android 13+)
+        List<String> permsNeeded = new ArrayList<>();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            permsNeeded.add(Manifest.permission.SEND_SMS);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            permsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        if (!permsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permsNeeded.toArray(new String[0]), 101);
+        }
 
-        loadLocalGear(); 
-        fetchRemoteGear(); 
+        ContextCompat.startForegroundService(this, new Intent(this, SosService.class));
+
+        loadLocalGear();
+        fetchRemoteGear();
 
         etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 adapter.filter(s.toString());
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
 
-        btnViewCart.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, CartActivity.class)));
-        btnViewMap.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, MapActivity.class)));
-        
+        btnViewCart.setOnClickListener(v -> {
+            startActivity(new Intent(HomeActivity.this, CartActivity.class));
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        });
+        btnViewMap.setOnClickListener(v -> {
+            startActivity(new Intent(HomeActivity.this, MapActivity.class));
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        });
+
         ivLogout.setOnClickListener(v -> logout());
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mShakeDetector = new ShakeDetector();
-        mShakeDetector.setOnShakeListener(() -> {
-            Snackbar.make(findViewById(android.R.id.content), "You shook the device! 🚀", Snackbar.LENGTH_LONG)
+        mShakeDetector.setOnShakeListener(() ->
+            Snackbar.make(findViewById(android.R.id.content), "Device shaken! SOS monitoring active. 🚀", Snackbar.LENGTH_LONG)
                     .setBackgroundTint(getResources().getColor(R.color.primary))
                     .setTextColor(getResources().getColor(R.color.on_primary))
-                    .show();
-        });
+                    .show()
+        );
+
+        // Prepare dynamic BroadcastReceiver
+        networkReceiver = new NetworkChangeReceiver();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Register sensor listener
         Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         if (accelerometer != null) {
             mSensorManager.registerListener(mShakeDetector, accelerometer, SensorManager.SENSOR_DELAY_UI);
         }
+
+        // Register BroadcastReceiver dynamically (preferred for foreground-only monitoring)
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkReceiver, filter);
     }
 
     @Override
     protected void onPause() {
         mSensorManager.unregisterListener(mShakeDetector);
+        try {
+            unregisterReceiver(networkReceiver);
+        } catch (IllegalArgumentException ignored) {}
         super.onPause();
     }
 
@@ -120,7 +159,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private void fetchRemoteGear() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:3000/")
+                .baseUrl("http://192.168.8.113:3000/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -133,9 +172,9 @@ public class HomeActivity extends AppCompatActivity {
                     adapter.updateList(gearList);
                 }
             }
-
             @Override
             public void onFailure(Call<List<Gear>> call, Throwable t) {
+                // Remote fetch failed — local data shown; network receiver will notify user
             }
         });
     }
@@ -143,11 +182,11 @@ public class HomeActivity extends AppCompatActivity {
     private void logout() {
         SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
         sharedPref.edit().clear().apply();
-        
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
         finish();
     }
 }
