@@ -22,7 +22,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Trip Badu"
+            android:text="Camping Gears"
             android:textSize="26sp"
             android:textStyle="bold"
             android:textColor="@color/primary"
@@ -33,25 +33,28 @@
             android:id="@+id/etName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:hint="Full Name"
             android:inputType="textPersonName"
-            android:layout_marginBottom="16dp"/>
+            android:textColor="@color/on_background" />
 
         <EditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:hint="Email"
             android:inputType="textEmailAddress"
-            android:layout_marginBottom="16dp"/>
+            android:textColor="@color/on_background" />
 
         <EditText
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:hint="Password"
             android:inputType="textPassword"
-            android:layout_marginBottom="16dp"/>
+            android:textColor="@color/on_background" />
 
         <TextView
             android:layout_width="match_parent"
@@ -62,11 +65,11 @@
 
         <Spinner
             android:id="@+id/spinnerRole"
+            style="@style/Widget.AppCompat.Spinner.Underlined"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:entries="@array/roles"
             android:layout_marginBottom="24dp"
-            style="@style/Widget.AppCompat.Spinner.Underlined"/>
+            android:entries="@array/roles" />
 
         <Button
             android:id="@+id/btnRegister"

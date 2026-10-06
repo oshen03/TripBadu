@@ -105,33 +105,38 @@
             android:id="@+id/etAdName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             android:hint="Item Name"
-            android:layout_marginBottom="12dp"/>
+            android:textColor="#013C01" />
 
         <EditText
             android:id="@+id/etAdDesc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:gravity="top"
             android:hint="Description"
             android:minLines="3"
-            android:gravity="top"
-            android:layout_marginBottom="12dp"/>
+            android:textColor="#02401B" />
 
         <EditText
             android:id="@+id/etAdPrice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             android:hint="Price per Day (LKR)"
             android:inputType="numberDecimal"
-            android:layout_marginBottom="12dp"/>
+            android:textAlignment="viewStart"
+            android:textColor="#084201" />
 
         <EditText
             android:id="@+id/etAdContact"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             android:hint="Contact Number"
             android:inputType="phone"
-            android:layout_marginBottom="12dp"/>
+            android:textColor="#063E00" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -158,21 +163,23 @@
                 android:id="@+id/etAdLat"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
                 android:layout_weight="1"
+                android:enabled="false"
                 android:hint="Latitude"
                 android:inputType="numberSigned|numberDecimal"
-                android:layout_marginEnd="4dp"
-                android:enabled="false"/>
+                android:textColor="#000000" />
 
             <EditText
                 android:id="@+id/etAdLng"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_weight="1"
+                android:enabled="false"
                 android:hint="Longitude"
                 android:inputType="numberSigned|numberDecimal"
-                android:layout_marginStart="4dp"
-                android:enabled="false"/>
+                android:textColor="#000000" />
         </LinearLayout>
 
         <Button
