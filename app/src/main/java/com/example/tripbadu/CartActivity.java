@@ -15,7 +15,7 @@ import java.util.List;
 public class CartActivity extends AppCompatActivity {
 
     private RecyclerView rvCart;
-    private GearAdapter adapter;
+    private CartAdapter adapter;
     private List<Gear> cartList = new ArrayList<>();
     private TextView tvTotalAmount;
     private Button btnCheckout;
@@ -63,8 +63,23 @@ public class CartActivity extends AppCompatActivity {
         }
         cursor.close();
 
-        adapter = new GearAdapter(this, cartList);
+        adapter = new CartAdapter(this, cartList, (item, position) -> {
+            dbHelper.deleteCartItem(item.getId());
+            cartList.remove(position);
+            adapter.notifyItemRemoved(position);
+            adapter.notifyItemRangeChanged(position, cartList.size());
+            recalculateTotal();
+            Toast.makeText(CartActivity.this, item.getName() + " removed from cart", Toast.LENGTH_SHORT).show();
+        });
         rvCart.setAdapter(adapter);
+        tvTotalAmount.setText("Total: LKR " + total);
+    }
+
+    private void recalculateTotal() {
+        total = 0;
+        for (Gear item : cartList) {
+            total += item.getPrice();
+        }
         tvTotalAmount.setText("Total: LKR " + total);
     }
 }

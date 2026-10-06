@@ -244,4 +244,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_CART);
     }
+
+    public void deleteCartItem(int cartId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_CART, COLUMN_CART_ID + " = ?", new String[]{String.valueOf(cartId)});
+    }
 }
