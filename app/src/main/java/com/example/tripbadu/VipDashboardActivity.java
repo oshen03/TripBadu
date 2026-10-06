@@ -1,8 +1,10 @@
 package com.example.tripbadu;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +17,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +30,7 @@ public class VipDashboardActivity extends AppCompatActivity {
     private Uri selectedImageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private ActivityResultLauncher<Void> cameraLauncher;
+    private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<Intent> locationPickerLauncher;
     private DatabaseHelper dbHelper;
 
@@ -91,6 +95,17 @@ public class VipDashboardActivity extends AppCompatActivity {
                 }
         );
 
+        cameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        launchCamera();
+                    } else {
+                        Toast.makeText(this, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
         locationPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -113,7 +128,11 @@ public class VipDashboardActivity extends AppCompatActivity {
         });
 
         btnTakePhoto.setOnClickListener(v -> {
-            cameraLauncher.launch(null);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                launchCamera();
+            } else {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+            }
         });
 
         btnPickLocation.setOnClickListener(v -> {
@@ -137,6 +156,15 @@ public class VipDashboardActivity extends AppCompatActivity {
             startActivity(new Intent(this, HomeActivity.class));
             finish();
         });
+    }
+
+    private void launchCamera() {
+        try {
+            cameraLauncher.launch(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Could not open camera: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void uploadAd() {
