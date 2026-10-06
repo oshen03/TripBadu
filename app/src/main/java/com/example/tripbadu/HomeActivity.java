@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -38,7 +39,7 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView rvGear;
     private GearAdapter adapter;
     private List<Gear> gearList = new ArrayList<>();
-    private Button btnViewCart, btnViewMap;
+    private Button btnViewCart, btnViewMap, btnAdminPanel, btnMyGarage;
     private ImageView ivLogout;
     private EditText etSearch;
     private DatabaseHelper dbHelper;
@@ -58,8 +59,12 @@ public class HomeActivity extends AppCompatActivity {
         rvGear = findViewById(R.id.rvGear);
         btnViewCart = findViewById(R.id.btnViewCart);
         btnViewMap = findViewById(R.id.btnViewMap);
+        btnAdminPanel = findViewById(R.id.btnAdminPanel);
+        btnMyGarage = findViewById(R.id.btnMyGarage);
         ivLogout = findViewById(R.id.ivLogout);
         etSearch = findViewById(R.id.etSearch);
+
+        checkUserRole();
 
         rvGear.setLayoutManager(new LinearLayoutManager(this));
         adapter = new GearAdapter(this, gearList);
@@ -121,6 +126,9 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        // Refresh role-based button visibility depending on session
+        checkUserRole();
+
         // Register sensor listener
         Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         if (accelerometer != null) {
@@ -130,6 +138,30 @@ public class HomeActivity extends AppCompatActivity {
         // Register BroadcastReceiver dynamically (preferred for foreground-only monitoring)
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(networkReceiver, filter);
+    }
+
+    private void checkUserRole() {
+        SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        String role = sharedPref.getString("role", "");
+        if ("admin".equalsIgnoreCase(role)) {
+            btnAdminPanel.setVisibility(View.VISIBLE);
+            btnAdminPanel.setOnClickListener(v -> {
+                startActivity(new Intent(HomeActivity.this, AdminActivity.class));
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+            });
+        } else {
+            btnAdminPanel.setVisibility(View.GONE);
+        }
+
+        if ("vip".equalsIgnoreCase(role)) {
+            btnMyGarage.setVisibility(View.VISIBLE);
+            btnMyGarage.setOnClickListener(v -> {
+                startActivity(new Intent(HomeActivity.this, VipDashboardActivity.class));
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+            });
+        } else {
+            btnMyGarage.setVisibility(View.GONE);
+        }
     }
 
     @Override
