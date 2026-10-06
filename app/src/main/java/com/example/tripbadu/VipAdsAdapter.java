@@ -47,6 +47,8 @@ public class VipAdsAdapter extends RecyclerView.Adapter<VipAdsAdapter.ViewHolder
         
         if (gear.getStatus().equalsIgnoreCase("pending")) {
             holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
+        } else if (gear.getStatus().equalsIgnoreCase("rejected")) {
+            holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
         } else {
             holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
         }

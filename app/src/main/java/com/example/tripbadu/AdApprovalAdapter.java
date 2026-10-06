@@ -1,7 +1,6 @@
 package com.example.tripbadu;
 
 import android.content.Context;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +15,20 @@ import java.util.List;
 
 public class AdApprovalAdapter extends RecyclerView.Adapter<AdApprovalAdapter.ViewHolder> {
 
+    public interface OnAdActionListener {
+        void onActionCompleted();
+    }
+
     private Context context;
     private List<Gear> pendingAds;
     private DatabaseHelper dbHelper;
+    private OnAdActionListener actionListener;
 
-    public AdApprovalAdapter(Context context, List<Gear> pendingAds) {
+    public AdApprovalAdapter(Context context, List<Gear> pendingAds, OnAdActionListener actionListener) {
         this.context = context;
         this.pendingAds = pendingAds;
         this.dbHelper = new DatabaseHelper(context);
+        this.actionListener = actionListener;
     }
 
     @NonNull
@@ -35,10 +40,18 @@ public class AdApprovalAdapter extends RecyclerView.Adapter<AdApprovalAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Gear gear = pendingAds.get(holder.getAdapterPosition());
+        Gear gear = pendingAds.get(position);
         holder.tvName.setText(gear.getName());
         holder.tvPrice.setText("LKR " + gear.getPrice());
-        
+
+        String owner = (gear.getOwnerEmail() != null && !gear.getOwnerEmail().isEmpty()) ? gear.getOwnerEmail() : "VIP Member";
+        holder.tvOwner.setText("Submitted by: " + owner);
+
+        String contact = (gear.getContact() != null && !gear.getContact().isEmpty()) ? gear.getContact() : "N/A";
+        holder.tvContact.setText("Contact: " + contact);
+
+        holder.tvLocation.setText("Location: " + gear.getLatitude() + ", " + gear.getLongitude());
+
         if (gear.getImage() != null && !gear.getImage().isEmpty()) {
             String img = gear.getImage();
             if (!img.startsWith("http://") && !img.startsWith("https://") && !img.startsWith("content://") && !img.startsWith("file://")) {
@@ -55,21 +68,31 @@ public class AdApprovalAdapter extends RecyclerView.Adapter<AdApprovalAdapter.Vi
 
         holder.btnApprove.setOnClickListener(v -> {
             int currentPos = holder.getAdapterPosition();
-            if (currentPos != RecyclerView.NO_POSITION) {
-                dbHelper.approveGear(gear.getId());
-                Toast.makeText(context, "Ad Approved", Toast.LENGTH_SHORT).show();
+            if (currentPos != RecyclerView.NO_POSITION && currentPos < pendingAds.size()) {
+                Gear currentGear = pendingAds.get(currentPos);
+                dbHelper.approveGear(currentGear.getId());
+                Toast.makeText(context, "Ad '" + currentGear.getName() + "' Approved", Toast.LENGTH_SHORT).show();
                 pendingAds.remove(currentPos);
                 notifyItemRemoved(currentPos);
+                notifyItemRangeChanged(currentPos, pendingAds.size());
+                if (actionListener != null) {
+                    actionListener.onActionCompleted();
+                }
             }
         });
 
         holder.btnReject.setOnClickListener(v -> {
             int currentPos = holder.getAdapterPosition();
-            if (currentPos != RecyclerView.NO_POSITION) {
-                dbHelper.deleteGear(gear.getId());
-                Toast.makeText(context, "Ad Rejected", Toast.LENGTH_SHORT).show();
+            if (currentPos != RecyclerView.NO_POSITION && currentPos < pendingAds.size()) {
+                Gear currentGear = pendingAds.get(currentPos);
+                dbHelper.rejectGear(currentGear.getId());
+                Toast.makeText(context, "Ad '" + currentGear.getName() + "' Rejected", Toast.LENGTH_SHORT).show();
                 pendingAds.remove(currentPos);
                 notifyItemRemoved(currentPos);
+                notifyItemRangeChanged(currentPos, pendingAds.size());
+                if (actionListener != null) {
+                    actionListener.onActionCompleted();
+                }
             }
         });
     }
@@ -80,7 +103,7 @@ public class AdApprovalAdapter extends RecyclerView.Adapter<AdApprovalAdapter.Vi
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvPrice;
+        TextView tvName, tvPrice, tvOwner, tvContact, tvLocation;
         ImageView ivImage;
         Button btnApprove, btnReject;
 
@@ -88,6 +111,9 @@ public class AdApprovalAdapter extends RecyclerView.Adapter<AdApprovalAdapter.Vi
             super(itemView);
             tvName = itemView.findViewById(R.id.tvPendingName);
             tvPrice = itemView.findViewById(R.id.tvPendingPrice);
+            tvOwner = itemView.findViewById(R.id.tvPendingOwner);
+            tvContact = itemView.findViewById(R.id.tvPendingContact);
+            tvLocation = itemView.findViewById(R.id.tvPendingLocation);
             ivImage = itemView.findViewById(R.id.ivPendingImage);
             btnApprove = itemView.findViewById(R.id.btnApprove);
             btnReject = itemView.findViewById(R.id.btnReject);

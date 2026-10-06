@@ -201,6 +201,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.update(TABLE_GEAR, values, COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
+    public void rejectGear(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        String ownerEmail = "";
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_GEAR_OWNER + ", " + COLUMN_GEAR_NAME + " FROM " + TABLE_GEAR + " WHERE " + COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
+        if (cursor.moveToFirst()) {
+            ownerEmail = cursor.getString(0);
+            String gearName = cursor.getString(1);
+            if (ownerEmail != null && !ownerEmail.isEmpty()) {
+                addNotification(ownerEmail, "Your ad for '" + gearName + "' was rejected by the administrator.");
+            }
+        }
+        cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_GEAR_STATUS, "rejected");
+        db.update(TABLE_GEAR, values, COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
+    }
+
     public void deleteGear(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_GEAR, COLUMN_GEAR_ID + " = ?", new String[]{String.valueOf(id)});
