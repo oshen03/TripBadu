@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "477597648355",
+    "firebase_url": "https://tripbadu-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "tripbadu-2026",
+    "storage_bucket": "tripbadu-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477597648355:android:d2cddecb789c8a1e564cd6",
+        "android_client_info": {
+          "package_name": "com.example.tripbadu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQKnXa1SUTqbm6okwmRyxgfrhVnDJvtqI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
