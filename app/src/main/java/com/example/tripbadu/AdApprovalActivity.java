@@ -5,9 +5,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,6 +73,40 @@ public class AdApprovalActivity extends AppCompatActivity {
         updateEmptyState();
         adapter = new AdApprovalAdapter(this, pendingAds, this::updateEmptyState);
         rvPendingAds.setAdapter(adapter);
+
+        // Also fetch pending ads from Firebase Cloud
+        FirebaseHelper.getInstance().getPendingGearQuery().addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    boolean changed = false;
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        Gear gear = child.getValue(Gear.class);
+                        if (gear != null) {
+                            dbHelper.insertOrUpdateGear(gear);
+                            boolean exists = false;
+                            for (Gear p : pendingAds) {
+                                if (p.getId() == gear.getId()) {
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                            if (!exists) {
+                                pendingAds.add(gear);
+                                changed = true;
+                            }
+                        }
+                    }
+                    if (changed && adapter != null) {
+                        adapter.notifyDataSetChanged();
+                        updateEmptyState();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void updateEmptyState() {

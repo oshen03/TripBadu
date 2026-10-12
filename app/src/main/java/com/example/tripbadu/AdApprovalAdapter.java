@@ -71,6 +71,7 @@ public class AdApprovalAdapter extends RecyclerView.Adapter<AdApprovalAdapter.Vi
             if (currentPos != RecyclerView.NO_POSITION && currentPos < pendingAds.size()) {
                 Gear currentGear = pendingAds.get(currentPos);
                 dbHelper.approveGear(currentGear.getId());
+                FirebaseHelper.getInstance().updateGearStatus(currentGear.getId(), "approved");
                 Toast.makeText(context, "Ad '" + currentGear.getName() + "' Approved", Toast.LENGTH_SHORT).show();
                 pendingAds.remove(currentPos);
                 notifyItemRemoved(currentPos);
@@ -86,6 +87,7 @@ public class AdApprovalAdapter extends RecyclerView.Adapter<AdApprovalAdapter.Vi
             if (currentPos != RecyclerView.NO_POSITION && currentPos < pendingAds.size()) {
                 Gear currentGear = pendingAds.get(currentPos);
                 dbHelper.rejectGear(currentGear.getId());
+                FirebaseHelper.getInstance().updateGearStatus(currentGear.getId(), "rejected");
                 Toast.makeText(context, "Ad '" + currentGear.getName() + "' Rejected", Toast.LENGTH_SHORT).show();
                 pendingAds.remove(currentPos);
                 notifyItemRemoved(currentPos);

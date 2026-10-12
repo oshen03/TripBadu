@@ -23,9 +23,13 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 import retrofit2.Call;
@@ -88,6 +92,7 @@ public class HomeActivity extends AppCompatActivity {
         ContextCompat.startForegroundService(this, new Intent(this, SosService.class));
 
         loadLocalGear();
+        listenToFirebaseGear();
         fetchRemoteGear();
 
         etSearch.addTextChangedListener(new TextWatcher() {
@@ -187,6 +192,35 @@ public class HomeActivity extends AppCompatActivity {
         }
         cursor.close();
         adapter.updateList(gearList);
+    }
+
+    private void listenToFirebaseGear() {
+        FirebaseHelper.getInstance().getApprovedGearQuery().addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    List<Gear> cloudItems = new ArrayList<>();
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        Gear gear = child.getValue(Gear.class);
+                        if (gear != null) {
+                            cloudItems.add(gear);
+                            // Cache to SQLite for offline availability
+                            dbHelper.insertOrUpdateGear(gear);
+                        }
+                    }
+                    if (!cloudItems.isEmpty()) {
+                        gearList.clear();
+                        gearList.addAll(cloudItems);
+                        adapter.updateList(gearList);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Keep local SQLite data if cloud is unavailable
+            }
+        });
     }
 
     private void fetchRemoteGear() {

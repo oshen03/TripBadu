@@ -187,8 +187,10 @@ public class VipDashboardActivity extends AppCompatActivity {
             SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
             String userEmail = sharedPref.getString("email", "");
 
-            dbHelper.addGear(name, price, selectedImageUri.toString(), "pending", lat, lng, contact, userEmail);
-            Toast.makeText(this, "Ad Submitted for Approval", Toast.LENGTH_SHORT).show();
+            long insertedId = dbHelper.addGear(name, price, selectedImageUri.toString(), "pending", lat, lng, contact, userEmail);
+            Gear cloudGear = new Gear((int) insertedId, name, price, selectedImageUri.toString(), lat, lng, contact, "pending", userEmail);
+            FirebaseHelper.getInstance().saveGear(cloudGear, null);
+            Toast.makeText(this, "Ad Submitted for Approval (Synced to Cloud)", Toast.LENGTH_SHORT).show();
             
             etAdName.setText("");
             etAdPrice.setText("");
