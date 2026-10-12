@@ -47,7 +47,15 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 } else {
                     if (dbHelper.registerUser(email, password, name, role)) {
-                        Toast.makeText(RegisterActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
+                        // Sync user to Firebase Realtime Database
+                        FirebaseHelper.getInstance().saveUser(name, email, role, DatabaseHelper.hashPassword(password), (error, ref) -> {
+                            if (error != null) {
+                                android.util.Log.e("RegisterActivity", "Firebase write error: " + error.getMessage());
+                            } else {
+                                android.util.Log.d("RegisterActivity", "User successfully written to Firebase!");
+                            }
+                        });
+                        Toast.makeText(RegisterActivity.this, "Registration Successful (Synced to Cloud)", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                         finish();
                     } else {

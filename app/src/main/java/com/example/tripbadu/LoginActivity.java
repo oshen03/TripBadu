@@ -10,7 +10,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -53,21 +57,15 @@ public class LoginActivity extends AppCompatActivity {
                             String role = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ROLE));
                             String name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NAME));
                             String userEmail = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_EMAIL));
+                            cursor.close();
                             
                             saveSession(id, role, name, userEmail);
-                            
-                            Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                            
-                            if (role.equals("VIP")) {
-                                startActivity(new Intent(LoginActivity.this, VipDashboardActivity.class));
-                            } else {
-                                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                            }
-                            finish();
+                            proceedToDashboard(role, "Login Successful");
                         } else {
-                            Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                            if (cursor != null) cursor.close();
+                            // Check Firebase Cloud Database as fallback
+                            checkFirebaseLogin(email, password);
                         }
-                        if (cursor != null) cursor.close();
                     }
                 }
             }
@@ -89,5 +87,41 @@ public class LoginActivity extends AppCompatActivity {
         editor.putString("userName", name);
         editor.putString("email", email);
         editor.apply();
+    }
+
+    private void checkFirebaseLogin(String email, String password) {
+        String inputHash = DatabaseHelper.hashPassword(password);
+        FirebaseHelper.getInstance().getUser(email, new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    CloudUser cloudUser = snapshot.getValue(CloudUser.class);
+                    if (cloudUser != null && cloudUser.getPasswordHash() != null &&
+                            (cloudUser.getPasswordHash().equals(inputHash) || cloudUser.getPasswordHash().equals(password))) {
+                        // Cache user to local SQLite
+                        dbHelper.insertOrUpdateUser(cloudUser.getEmail(), cloudUser.getPasswordHash(), cloudUser.getName(), cloudUser.getRole());
+                        saveSession(0, cloudUser.getRole(), cloudUser.getName(), cloudUser.getEmail());
+                        proceedToDashboard(cloudUser.getRole(), "Cloud Login Successful");
+                        return;
+                    }
+                }
+                Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(LoginActivity.this, "Login error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void proceedToDashboard(String role, String message) {
+        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
+        if ("VIP".equalsIgnoreCase(role)) {
+            startActivity(new Intent(LoginActivity.this, VipDashboardActivity.class));
+        } else {
+            startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+        }
+        finish();
     }
 }
