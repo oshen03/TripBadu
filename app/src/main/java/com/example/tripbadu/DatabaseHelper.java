@@ -141,12 +141,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + TABLE_USERS, null);
     }
 
+    public boolean insertOrUpdateUser(String email, String passwordHash, String name, String role) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_EMAIL, email);
+        values.put(COLUMN_PASSWORD, passwordHash);
+        values.put(COLUMN_NAME, name);
+        values.put(COLUMN_ROLE, role);
+        long result = db.insertWithOnConflict(TABLE_USERS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        return result != -1;
+    }
+
     public void deleteUser(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_USERS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
-    public void addGear(String name, double price, String image, String status, double lat, double lng, String contact, String ownerEmail) {
+    public long addGear(String name, double price, String image, String status, double lat, double lng, String contact, String ownerEmail) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_GEAR_NAME, name);
@@ -157,7 +168,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_GEAR_LNG, lng);
         values.put(COLUMN_GEAR_CONTACT, contact);
         values.put(COLUMN_GEAR_OWNER, ownerEmail);
-        db.insert(TABLE_GEAR, null, values);
+        return db.insert(TABLE_GEAR, null, values);
+    }
+
+    public void insertOrUpdateGear(Gear gear) {
+        if (gear == null) return;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        if (gear.getId() > 0) {
+            values.put(COLUMN_GEAR_ID, gear.getId());
+        }
+        values.put(COLUMN_GEAR_NAME, gear.getName());
+        values.put(COLUMN_GEAR_PRICE, gear.getPrice());
+        values.put(COLUMN_GEAR_IMAGE, gear.getImage());
+        values.put(COLUMN_GEAR_STATUS, gear.getStatus() != null ? gear.getStatus() : "approved");
+        values.put(COLUMN_GEAR_LAT, gear.getLatitude());
+        values.put(COLUMN_GEAR_LNG, gear.getLongitude());
+        values.put(COLUMN_GEAR_CONTACT, gear.getContact());
+        values.put(COLUMN_GEAR_OWNER, gear.getOwnerEmail());
+        db.insertWithOnConflict(TABLE_GEAR, null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
     public void updateGear(int id, String name, double price, String image, double lat, double lng, String contact) {
