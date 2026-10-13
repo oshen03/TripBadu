@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
@@ -37,16 +38,49 @@ public class ManageMembersAdapter extends RecyclerView.Adapter<ManageMembersAdap
         holder.tvEmail.setText(user.getEmail());
         holder.tvRole.setText(user.getRole());
 
+        // Criteria 3.2: onClick on list item (Fragment-to-Activity communication)
+        holder.itemView.setOnClickListener(v -> {
+            if (context instanceof MembersListFragment.OnMemberActionListener) {
+                ((MembersListFragment.OnMemberActionListener) context).onMemberSelected(user);
+            }
+        });
+
+        // Criteria 3.2: onLongClick on list item
+        holder.itemView.setOnLongClickListener(v -> {
+            Toast.makeText(context, "Long-pressed member: " + user.getName() + " (" + user.getRole() + ")", Toast.LENGTH_SHORT).show();
+            return true;
+        });
+
+        // Criteria 2.3: AlertDialog for delete confirmation
         holder.btnDelete.setOnClickListener(v -> {
-            if (user.getEmail().equals("admin")) {
-                Toast.makeText(context, "Cannot delete admin", Toast.LENGTH_SHORT).show();
+            if ("admin".equalsIgnoreCase(user.getEmail())) {
+                Toast.makeText(context, "Cannot delete administrator account", Toast.LENGTH_SHORT).show();
                 return;
             }
-            dbHelper.deleteUser(user.getId());
-            Toast.makeText(context, "User deleted", Toast.LENGTH_SHORT).show();
-            userList.remove(position);
-            notifyItemRemoved(position);
-            notifyItemRangeChanged(position, userList.size());
+
+            int adapterPos = holder.getAdapterPosition();
+            if (adapterPos == RecyclerView.NO_POSITION) return;
+
+            new AlertDialog.Builder(context)
+                    .setTitle("Delete Member")
+                    .setMessage("Are you sure you want to remove " + user.getName() + " (" + user.getEmail() + ")?")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        dbHelper.deleteUser(user.getId());
+                        Toast.makeText(context, "Member removed successfully", Toast.LENGTH_SHORT).show();
+                        if (adapterPos < userList.size()) {
+                            userList.remove(adapterPos);
+                            notifyItemRemoved(adapterPos);
+                            notifyItemRangeChanged(adapterPos, userList.size());
+                        }
+
+                        // Notify host activity so MemberReportFragment updates its charts!
+                        if (context instanceof MembersListFragment.OnMemberActionListener) {
+                            ((MembersListFragment.OnMemberActionListener) context).onMemberDeleted();
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
     }
 

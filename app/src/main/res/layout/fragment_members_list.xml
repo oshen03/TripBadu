@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/background">
+
+    <EditText
+        android:id="@+id/etSearchMember"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search member by name or email..."
+        android:background="@drawable/search_bg"
+        android:padding="12dp"
+        android:textColor="@color/on_background"
+        android:textColorHint="@color/text_secondary"
+        android:textSize="14sp"
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawablePadding="8dp"
+        android:layout_marginBottom="12dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMembersFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/tvEmptyMembers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No members found"
+        android:gravity="center"
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp"
+        android:visibility="gone"
+        android:layout_marginTop="32dp"/>
+
+</LinearLayout>

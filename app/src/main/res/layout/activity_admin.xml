@@ -214,8 +214,8 @@
             android:id="@+id/btnManageMembers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Manage Members"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:text="Members" />
 
         <Button
             android:id="@+id/btnEditExisting"

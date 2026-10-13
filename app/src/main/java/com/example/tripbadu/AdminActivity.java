@@ -192,11 +192,20 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        sharedPref.edit().clear().apply();
-        Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Confirm Logout")
+                .setMessage("Are you sure you want to log out of the Admin Panel?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Logout", (dialog, which) -> {
+                    SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+                    sharedPref.edit().clear().apply();
+                    Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }
