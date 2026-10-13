@@ -92,6 +92,7 @@ public class HomeActivity extends AppCompatActivity {
         ContextCompat.startForegroundService(this, new Intent(this, SosService.class));
 
         loadLocalGear();
+        syncLocalApprovedGearToFirebase();
         listenToFirebaseGear();
         fetchRemoteGear();
 
@@ -133,6 +134,9 @@ public class HomeActivity extends AppCompatActivity {
 
         // Refresh role-based button visibility depending on session
         checkUserRole();
+
+        // Ensure all approved ads remain loaded and visible when returning to marketplace
+        loadLocalGear();
 
         // Register sensor listener
         Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -181,17 +185,48 @@ public class HomeActivity extends AppCompatActivity {
     private void loadLocalGear() {
         gearList.clear();
         Cursor cursor = dbHelper.getAllGear();
-        if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_ID));
-                String name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_NAME));
-                double price = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_PRICE));
-                String image = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_IMAGE));
-                gearList.add(new Gear(id, name, price, image));
-            } while (cursor.moveToNext());
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    int id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_ID));
+                    String name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_NAME));
+                    double price = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_PRICE));
+                    String image = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_IMAGE));
+                    double lat = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_LAT));
+                    double lng = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_LNG));
+                    String contact = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_CONTACT));
+                    String status = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_STATUS));
+                    String owner = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_OWNER));
+
+                    gearList.add(new Gear(id, name, price, image, lat, lng, contact, status, owner));
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
         }
-        cursor.close();
         adapter.updateList(gearList);
+    }
+
+    private void syncLocalApprovedGearToFirebase() {
+        Cursor cursor = dbHelper.getAllGear();
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    int id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_ID));
+                    String name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_NAME));
+                    double price = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_PRICE));
+                    String image = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_IMAGE));
+                    double lat = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_LAT));
+                    double lng = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_LNG));
+                    String contact = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_CONTACT));
+                    String status = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_STATUS));
+                    String owner = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GEAR_OWNER));
+
+                    Gear g = new Gear(id, name, price, image, lat, lng, contact, status, owner);
+                    FirebaseHelper.getInstance().saveGear(g, null);
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
     }
 
     private void listenToFirebaseGear() {
@@ -199,26 +234,22 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    List<Gear> cloudItems = new ArrayList<>();
                     for (DataSnapshot child : snapshot.getChildren()) {
                         Gear gear = child.getValue(Gear.class);
                         if (gear != null) {
-                            cloudItems.add(gear);
                             // Cache to SQLite for offline availability
                             dbHelper.insertOrUpdateGear(gear);
                         }
                     }
-                    if (!cloudItems.isEmpty()) {
-                        gearList.clear();
-                        gearList.addAll(cloudItems);
-                        adapter.updateList(gearList);
-                    }
                 }
+                // Always reload from SQLite so all approved ads (local and cloud) remain visible
+                loadLocalGear();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 // Keep local SQLite data if cloud is unavailable
+                loadLocalGear();
             }
         });
     }

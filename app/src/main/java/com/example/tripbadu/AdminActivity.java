@@ -21,7 +21,7 @@ public class AdminActivity extends AppCompatActivity {
     private EditText etGearName, etGearPrice, etGearLat, etGearLng, etGearContact;
     private ImageView ivGearPreview, ivAdminLogout;
     private TextView tvFormTitle;
-    private Button btnSelectImage, btnAddGear, btnAdApproval, btnManageMembers, btnViewMain, btnPickLocation, btnEditExisting, btnCancelEdit;
+    private Button btnSelectImage, btnAddGear, btnAdApproval, btnManageMembers, btnViewMain, btnPickLocation, btnEditExisting, btnCancelEdit, btnDeleteAd;
     private DatabaseHelper dbHelper;
     private Uri selectedImageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
@@ -51,6 +51,7 @@ public class AdminActivity extends AppCompatActivity {
         btnPickLocation = findViewById(R.id.btnPickLocation);
         btnEditExisting = findViewById(R.id.btnEditExisting);
         btnCancelEdit = findViewById(R.id.btnCancelEdit);
+        btnDeleteAd = findViewById(R.id.btnDeleteAd);
 
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -111,10 +112,14 @@ public class AdminActivity extends AppCompatActivity {
                     double lng = Double.parseDouble(lngStr);
 
                     if (editingGearId == -1) {
-                        dbHelper.addGear(name, price, selectedImageUri.toString(), "approved", lat, lng, contact, "admin");
+                        long insertedId = dbHelper.addGear(name, price, selectedImageUri.toString(), "approved", lat, lng, contact, "admin");
+                        Gear cloudGear = new Gear((int) insertedId, name, price, selectedImageUri.toString(), lat, lng, contact, "approved", "admin");
+                        FirebaseHelper.getInstance().saveGear(cloudGear, null);
                         Toast.makeText(this, "Gear Added Successfully", Toast.LENGTH_SHORT).show();
                     } else {
                         dbHelper.updateGear(editingGearId, name, price, selectedImageUri.toString(), lat, lng, contact);
+                        Gear cloudGear = new Gear(editingGearId, name, price, selectedImageUri.toString(), lat, lng, contact, "approved", "admin");
+                        FirebaseHelper.getInstance().saveGear(cloudGear, null);
                         Toast.makeText(this, "Gear Updated Successfully", Toast.LENGTH_SHORT).show();
                         clearEditingState();
                     }
@@ -127,6 +132,24 @@ public class AdminActivity extends AppCompatActivity {
         });
 
         btnCancelEdit.setOnClickListener(v -> clearEditingState());
+
+        btnDeleteAd.setOnClickListener(v -> {
+            if (editingGearId == -1) return;
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Delete Published Ad")
+                    .setMessage("Are you sure you want to permanently delete this ad from the marketplace?")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        int idToDelete = editingGearId;
+                        dbHelper.deleteGear(idToDelete);
+                        FirebaseHelper.getInstance().deleteGear(idToDelete);
+                        Toast.makeText(this, "Ad Deleted Successfully", Toast.LENGTH_SHORT).show();
+                        clearEditingState();
+                        finish();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
 
         ivAdminLogout.setOnClickListener(v -> logout());
 
@@ -170,6 +193,7 @@ public class AdminActivity extends AppCompatActivity {
             tvFormTitle.setText("Edit Gear Item");
             btnAddGear.setText("Update Gear Item");
             btnCancelEdit.setVisibility(View.VISIBLE);
+            btnDeleteAd.setVisibility(View.VISIBLE);
         }
     }
 
@@ -178,6 +202,7 @@ public class AdminActivity extends AppCompatActivity {
         tvFormTitle.setText("Add New Gear");
         btnAddGear.setText("Add Gear Item");
         btnCancelEdit.setVisibility(View.GONE);
+        btnDeleteAd.setVisibility(View.GONE);
         resetForm();
     }
 
