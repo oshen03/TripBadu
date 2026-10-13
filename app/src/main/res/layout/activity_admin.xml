@@ -190,6 +190,17 @@
                         android:backgroundTint="@color/primary" />
                 </LinearLayout>
 
+                <Button
+                    android:id="@+id/btnDeleteAd"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Delete This Published Ad"
+                    android:textColor="#D32F2F"
+                    app:strokeColor="#D32F2F"
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp"/>
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
