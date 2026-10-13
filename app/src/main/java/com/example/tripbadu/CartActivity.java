@@ -64,12 +64,22 @@ public class CartActivity extends AppCompatActivity {
         cursor.close();
 
         adapter = new CartAdapter(this, cartList, (item, position) -> {
-            dbHelper.deleteCartItem(item.getId());
-            cartList.remove(position);
-            adapter.notifyItemRemoved(position);
-            adapter.notifyItemRangeChanged(position, cartList.size());
-            recalculateTotal();
-            Toast.makeText(CartActivity.this, item.getName() + " removed from cart", Toast.LENGTH_SHORT).show();
+            new androidx.appcompat.app.AlertDialog.Builder(CartActivity.this)
+                    .setTitle("Remove Item")
+                    .setMessage("Are you sure you want to remove '" + item.getName() + "' from your cart?")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton("Remove", (dialog, which) -> {
+                        dbHelper.deleteCartItem(item.getId());
+                        if (position < cartList.size()) {
+                            cartList.remove(position);
+                            adapter.notifyItemRemoved(position);
+                            adapter.notifyItemRangeChanged(position, cartList.size());
+                        }
+                        recalculateTotal();
+                        Toast.makeText(CartActivity.this, item.getName() + " removed from cart", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
         rvCart.setAdapter(adapter);
         tvTotalAmount.setText("Total: LKR " + total);

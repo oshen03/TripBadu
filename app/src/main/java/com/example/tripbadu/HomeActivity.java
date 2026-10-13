@@ -246,13 +246,21 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        sharedPref.edit().clear().apply();
-        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-        finish();
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Confirm Logout")
+                .setMessage("Are you sure you want to log out of TripBadu?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Logout", (dialog, which) -> {
+                    SharedPreferences sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+                    sharedPref.edit().clear().apply();
+                    Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                    finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }

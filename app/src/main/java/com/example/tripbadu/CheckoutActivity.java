@@ -24,6 +24,7 @@ import com.google.android.gms.wallet.PaymentData;
 import com.google.android.gms.wallet.PaymentDataRequest;
 import com.google.android.gms.wallet.PaymentsClient;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,12 +40,15 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private PaymentsClient paymentsClient;
     private RelativeLayout googlePayButton;
-    private Button btnPay;
-    private TextView tvOrderTotal;
+    private Button btnPay, btnSelectDate, btnSelectTime;
+    private TextView tvOrderTotal, tvRentalScheduleInfo;
     private ProgressBar progressBar;
     private double totalAmount;
     private DatabaseHelper dbHelper;
     private ApiService apiService;
+
+    private String selectedDate = "";
+    private String selectedTime = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +60,18 @@ public class CheckoutActivity extends AppCompatActivity {
         btnPay = findViewById(R.id.btnPay);
         tvOrderTotal = findViewById(R.id.tvOrderTotal);
         progressBar = findViewById(R.id.progressBar);
+        btnSelectDate = findViewById(R.id.btnSelectDate);
+        btnSelectTime = findViewById(R.id.btnSelectTime);
+        tvRentalScheduleInfo = findViewById(R.id.tvRentalScheduleInfo);
 
         totalAmount = getIntent().getDoubleExtra("TOTAL_AMOUNT", 0);
         tvOrderTotal.setText("Total: LKR " + totalAmount);
+
+        // Criteria 2.3: DatePickerDialog
+        btnSelectDate.setOnClickListener(v -> showDatePicker());
+
+        // Criteria 2.3: TimePickerDialog
+        btnSelectTime.setOnClickListener(v -> showTimePicker());
 
         // Initialize Retrofit
         Retrofit retrofit = new Retrofit.Builder()
@@ -77,6 +90,57 @@ public class CheckoutActivity extends AppCompatActivity {
         btnPay.setOnClickListener(v -> {
             Toast.makeText(this, "Standard payment not implemented. Please use Google Pay.", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void showDatePicker() {
+        Calendar cal = Calendar.getInstance();
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+
+        android.app.DatePickerDialog datePickerDialog = new android.app.DatePickerDialog(
+                this,
+                (view, pickedYear, pickedMonth, pickedDay) -> {
+                    selectedDate = pickedYear + "-" + (pickedMonth + 1) + "-" + pickedDay;
+                    updateScheduleText();
+                },
+                year, month, day
+        );
+        datePickerDialog.getDatePicker().setMinDate(cal.getTimeInMillis());
+        datePickerDialog.show();
+    }
+
+    private void showTimePicker() {
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+                this,
+                (view, pickedHour, pickedMinute) -> {
+                    String amPm = pickedHour >= 12 ? "PM" : "AM";
+                    int displayHour = pickedHour > 12 ? pickedHour - 12 : (pickedHour == 0 ? 12 : pickedHour);
+                    selectedTime = String.format(java.util.Locale.US, "%02d:%02d %s", displayHour, pickedMinute, amPm);
+                    updateScheduleText();
+                },
+                hour, minute, false
+        );
+        timePickerDialog.show();
+    }
+
+    private void updateScheduleText() {
+        String info = "Schedule: ";
+        if (!selectedDate.isEmpty()) {
+            info += selectedDate;
+        } else {
+            info += "Date Not Selected";
+        }
+        if (!selectedTime.isEmpty()) {
+            info += " at " + selectedTime;
+        } else {
+            info += " (Time Not Selected)";
+        }
+        tvRentalScheduleInfo.setText(info);
     }
 
     private void possiblyShowGooglePayButton() {

@@ -29,8 +29,51 @@
                 android:layout_height="wrap_content"
                 android:text="Total: LKR 0.00"
                 android:textSize="18sp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:textColor="@color/on_background"/>
+
+            <!-- Criteria 2.3: DatePickerDialog & TimePickerDialog integration -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rental Schedule"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <Button
+                    android:id="@+id/btnSelectDate"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pick Date"
+                    android:layout_marginEnd="6dp"/>
+
+                <Button
+                    android:id="@+id/btnSelectTime"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pick Time"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvRentalScheduleInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Schedule: Date &amp; Time Not Selected"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="24dp"/>
 
             <!-- Google Pay Button -->
             <RelativeLayout
